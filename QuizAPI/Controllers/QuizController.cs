@@ -1,13 +1,10 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using QuizAPI.Models;
 using CsvHelper;
 using CsvHelper.Configuration;
 using System.Globalization;
-using Microsoft.Extensions.Options;
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+
+
 
 namespace QuizAPI.Controllers
 {
@@ -15,13 +12,11 @@ namespace QuizAPI.Controllers
     [ApiController]
     public class QuizController : ControllerBase
     {
-        private readonly AppDbContext context;
-        private readonly IMapper mapper;
+        private readonly IQuizService quizService;
 
-        public QuizController(AppDbContext context, IMapper mapper)
+        public QuizController(IQuizService quizService)
         {
-            this.context = context;
-            this.mapper = mapper;
+            this.quizService = quizService;
         }
 
         private void GetRecords()
@@ -60,54 +55,33 @@ namespace QuizAPI.Controllers
         }
         
         [HttpPost("AddQuestion")]
-        public List<Question> Post(List<CreateQuestion> questions)
+        public Response<List<Question>?> Post(List<CreateQuestion> questions)
         {
-            List<Question> qs = new();
-            foreach (var question in questions)
+            try
             {
-
-                List<Option> ops = new();
-                foreach(var option in question.Options)
-                {
-                    Option? op = mapper.Map<Option>(option);
-                    
-                    ops.Add(op);
-                }
-
-                Question q = new()
-                {
-                    Content = question.Content,
-                    Point = question.Point,
-                    QuestionType = question.QuestionType,
-                    Options = ops
-                };
-                
-                context.AddRange(q);
-                qs.Add(q);
+                var qs = quizService.AddQuestions(questions);
+                return new Response<List<Question>?>(qs, true);
             }
-
-            context.SaveChanges();
-
-           
-
-            // context.BulkInsert(qs);
-            return qs;
-            
+            catch (Exception e)
+            {
+                return new Response<List<Question>?>(null, false, e.Message);
+            }
             
         }
 
         
         [HttpDelete("Question/{id}")]
-        public int Delete(int id)
+        public Response<int?> Delete(int id)
         {
-            Question? q = context.Questions.Where(q => q.Id == id).FirstOrDefault();
-            if (q == null)
+            try
             {
-                throw new Exception("Error");
+                var r = quizService.DeleteQuestion(id);
+                return new Response<int?>(r, true);
             }
-
-            context.Remove(q);
-            return context.SaveChanges();  
+            catch (Exception e)
+            {
+                return new Response<int?>(null, false, e.Message);
+            }
         }
     }
 }

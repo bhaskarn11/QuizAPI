@@ -1,10 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using QuizAPI.Schemas;
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+
 
 namespace QuizAPI.Controllers
 {
@@ -12,117 +9,76 @@ namespace QuizAPI.Controllers
     [ApiController]
     public class AssessmentController : ControllerBase
     {
-        private readonly AppDbContext context;
-        private readonly IMapper mapper;
+        private readonly IAssessmentService assessmentService;
 
-        
-
-        public AssessmentController(AppDbContext context, IMapper mapper)
+        public AssessmentController(IAssessmentService assessmentService)
         {
-            this.context = context;
-            this.mapper = mapper;
+            this.assessmentService = assessmentService;
         }
 
 
-       /* [HttpGet]
-        public IEnumerable<Assessment> GetAllAssementByQuiz(int assessmentId)
-        {
-            return context.Assessments.Where(p => p.Id == assessmentId).ToList();
-        }*/
-
-        
         [HttpGet("{id}")]
-        public Assessment? GetAssesmentById(int id)
+        public Response<Assessment?> GetAssesmentById(int id)
         {
-            Assessment? assesment = context.Assessments.Where(p => p.Id == id).FirstOrDefault();
-            if (assesment == null)
+            try
             {
-                throw new Exception("No assessment found");
+                Assessment? assesment = assessmentService.GetAssesmentById(id);
+                return new Response<Assessment?>(assesment, true);
             }
-            List<AssessmentAnswer> assAns =  context.AssessmentAnswers.Where(p => p.AssessmentId == assesment.Id).Include("Question.Options").ToList();
-            assesment.AssessmentAnswers = assAns;
-            return assesment;
+
+            catch (Exception e)
+            {
+                return new Response<Assessment?>(null, false, e.Message);
+            }
         }
 
-        
+
         [HttpPost("InitiateAssessment")]
-        public Assessment InitiateAssessment(int userId)
+        public Response<Assessment?> InitiateAssessment(int userId)
         {
-            
-            List<Question> questions = context.Questions.FromSql($"SELECT TOP 10 * FROM dbo.Questions ORDER BY NEWID()").Include("Options").ToList();
-            DateTime startTime = DateTime.UtcNow;
-            //TimeSpan duration = TimeSpan.Ad
-            if (questions.IsNullOrEmpty())
+
+            try
             {
-                throw new Exception("No questions found");
+                var assessment = assessmentService.InitiateAssessment(userId);
+                return new Response<Assessment?>(assessment, true);
             }
 
-            
-            List<AssessmentAnswer> assessmentAnswers = new();
-            foreach (var q in questions)
+            catch (Exception e)
             {
-                AssessmentAnswer assAnswer = new() { Question = q };
-                assessmentAnswers.Add(assAnswer);
+                return new Response<Assessment?>(null, false, e.Message);
             }
-            Assessment assesment = new()
-            {
-                UserId = userId,
-                StartedAt = startTime,
-                AssessmentAnswers = assessmentAnswers
-            };
-            context.Add(assesment);
             
-            context.SaveChanges();
-            return assesment;
         }
 
 
         [HttpPost("Submit")]
-        public Assessment SubmitAssessment(int assessmentId)
+        public Response<Assessment?> SubmitAssessment(int assessmentId)
         {
-            DateTime submittedAt = DateTime.UtcNow;
-            Assessment? assessment = context.Assessments.Where(p => p.Id == assessmentId).Include("AssessmentAnswers.Question").Include("AssessmentAnswers.SubmittedAnswer").FirstOrDefault();
 
-            if (assessment == null || assessment.AssessmentAnswers.IsNullOrEmpty())
+            try
             {
-                throw new Exception("Error occured at assessment submission");
+                var ass = assessmentService.SubmitAssessment(assessmentId);
+                return new Response<Assessment?>(ass, true);
             }
 
-            int score = 0;
-            
-            foreach (var answer in assessment.AssessmentAnswers)
+            catch (Exception e)
             {
-                if (answer != null && answer.SubmittedAnswer != null && 
-                    answer.SubmittedAnswer.IsRightOption)
-                {
-                    score += answer.Question!.Point;
-                }
+                return new Response<Assessment?>(null, false, e.Message);
             }
-            assessment.Score = score;
-            assessment.SubmittedAt = submittedAt;
-            
-            context.SaveChanges();
-            return assessment;
         }
 
         [HttpPost("SetAnswer")]
-        public Response<string> SetAnswer(int assessmentId, int questionId, int optionId)
+        public Response<AssessmentAnswer?> SetAnswer(int assessmentId, int questionId, int optionId)
         {
-            AssessmentAnswer? assessmentAnswer = context.AssessmentAnswers.
-                            Where(p => p.AssessmentId == assessmentId && p.QuestionId == questionId).Include("Question.Options").FirstOrDefault();
-            
-
-            if (assessmentAnswer != null && assessmentAnswer.Question != null)
+            try
             {
-                Option? op = assessmentAnswer.Question!.Options!.First(o => o.Id == optionId);
-                assessmentAnswer.SubmittedAnswer = op;
-
-                context.SaveChanges();
-                return new Response<string>("", true);
+                var a = assessmentService.SetAnswer(assessmentId, questionId, optionId);
+                return new Response<AssessmentAnswer?>(a, true);
             }
-
-            throw new Exception("Assessment Error");
-
+            catch (Exception e)
+            {
+                return new Response<AssessmentAnswer?>(null, false, e.Message);
+            }
         }
 
 

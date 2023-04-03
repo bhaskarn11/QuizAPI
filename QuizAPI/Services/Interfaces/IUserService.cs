@@ -2,7 +2,7 @@
 {
     public interface IUserService
     {
-        public User getUserById(int userId);
+        public User? GetUserById(int userId);
         public int DeleteUser(int userId);
         public User CreateUser(CreateUser createUser);
         public User UpdateUser(UpdateUser updateUser);

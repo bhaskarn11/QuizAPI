@@ -1,12 +1,18 @@
 global using QuizAPI.Models;
 global using QuizAPI.Data;
 global using QuizAPI.Schemas;
-global using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
+global using QuizAPI.Services;
+global using QuizAPI.Services.Interfaces;
+global using Microsoft.EntityFrameworkCore;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IAssessmentService, AssessmentService>();
+builder.Services.AddScoped<IQuizService, QuizService>();
+
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

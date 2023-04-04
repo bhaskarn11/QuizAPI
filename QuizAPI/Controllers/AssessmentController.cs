@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 
@@ -17,7 +17,7 @@ namespace QuizAPI.Controllers
         }
 
 
-        [HttpGet("{id}")]
+        [HttpGet("{id}"), Authorize(Roles = "TEACHER, STUDENT, ADMIN")]
         public Response<Assessment?> GetAssesmentById(int id)
         {
             try
@@ -33,7 +33,7 @@ namespace QuizAPI.Controllers
         }
 
 
-        [HttpPost("InitiateAssessment")]
+        [HttpPost("InitiateAssessment"), Authorize(Roles = "STUDENT, ADMIN")]
         public Response<Assessment?> InitiateAssessment(int userId)
         {
 
@@ -51,7 +51,7 @@ namespace QuizAPI.Controllers
         }
 
 
-        [HttpPost("Submit")]
+        [HttpPost("Submit"), Authorize(Roles = "STUDENT, ADMIN")]
         public Response<Assessment?> SubmitAssessment(int assessmentId)
         {
 
@@ -67,7 +67,7 @@ namespace QuizAPI.Controllers
             }
         }
 
-        [HttpPost("SetAnswer")]
+        [HttpPost("SetAnswer"), Authorize(Roles = "STUDENT, ADMIN")]
         public Response<AssessmentAnswer?> SetAnswer(int assessmentId, int questionId, int optionId)
         {
             try

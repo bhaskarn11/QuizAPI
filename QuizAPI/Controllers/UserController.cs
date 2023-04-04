@@ -1,70 +1,96 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
-
+using QuizAPI.Schemas.Users;
 
 namespace QuizAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class UserController : ControllerBase
     {
-        private readonly AppDbContext context;
-        private readonly IMapper mapper;
+       
+        private readonly IUserService userService;
 
-        public UserController(AppDbContext context, IMapper mapper)
+        public UserController(IUserService userService)
         {
-            this.context = context;
-            this.mapper = mapper;
+            
+            this.userService = userService;
         }
 
         // GET api/<UserController>/5
         [HttpGet("{id}")]
-        public User? Get(int id)
+        public Response<User?> Get(int id)
         {
 
-            return context.Users.Where(p => p.Id == id).FirstOrDefault(); ;
+            try
+            {
+                var u = userService.GetUserById(id);
+                return new Response<User?>(u, true);
+            }
+            catch (Exception e)
+            {
+                return new Response<User?>(null, false, e.Message);
+            }
         }
 
         
-        [HttpPost]
-        public User Post(CreateUser createUser)
+        [HttpPost, AllowAnonymous]
+        public Response<User?> Post(CreateUser createUser)
         {
-            User user = mapper.Map<User>(createUser);
-            context.Add(user);
-            context.SaveChanges();
-
-            return user;
+            try
+            {
+                var u = userService.CreateUser(createUser);
+                return new Response<User?>(u, true);
+            }
+            catch (Exception e)
+            {
+                return new Response<User?>(null, false, e.Message);
+            }
         }
 
 
         // DELETE api/<UserController>/5
         [HttpDelete("{id}")]
-        public int Delete(int id)
+        public Response<int?> Delete(int id)
         {
-            User? user = context.Users.Where(p => p.Id == id).FirstOrDefault();
-            if (user == null)
+            try
             {
-                return 0;
+                var u = userService.DeleteUser(id);
+                return new Response<int?>(u, true);
             }
-            context.Remove(user);
-            return context.SaveChanges();
+            catch (Exception e)
+            {
+                return new Response<int?>(null, false, e.Message);
+            }
         }
 
         [HttpPut]
-        public User? Update(UpdateUser updateUser)
+        public Response<User?> Update(UpdateUser updateUser)
         {
-            User? user = context.Users.Where(p => p.Id == updateUser.userId).FirstOrDefault();
-            if (user == null)
+            try
             {
-                throw new Exception("User not found");
+                var u = userService.UpdateUser(updateUser);
+                return new Response<User?>(u, true);
             }
-            user.Name = updateUser.Name;
-            user.Email = updateUser.Email;
-            user.IsDisabled = updateUser.IsDisabled;
-            
-            context.SaveChanges();
-            return user;
+            catch (Exception e)
+            {
+                return new Response<User?>(null, false, e.Message);
+            }
+        }
+
+        [HttpPost("Login"), AllowAnonymous]
+        public TokenResponse Login(LoginRequest loginRequest)
+        {
+            try
+            {
+                return userService.LogIn(loginRequest);
+            }
+            catch (Exception e)
+            {
+                return new TokenResponse(false, e.Message);
+            }
         }
     }
 }

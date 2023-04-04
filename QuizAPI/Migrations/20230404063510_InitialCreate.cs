@@ -33,10 +33,10 @@ namespace QuizAPI.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Email = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Email = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     HashedPassword = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PasswordSalt = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsDisabled = table.Column<bool>(type: "bit", nullable: false),
-                    AssesmentId = table.Column<int>(type: "int", nullable: false),
                     UserType = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -94,7 +94,7 @@ namespace QuizAPI.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     SubmittedAnswerId = table.Column<int>(type: "int", nullable: true),
-                    QuestionId = table.Column<int>(type: "int", nullable: true),
+                    QuestionId = table.Column<int>(type: "int", nullable: false),
                     AssessmentId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
@@ -114,7 +114,8 @@ namespace QuizAPI.Migrations
                         name: "FK_AssessmentAnswers_Questions_QuestionId",
                         column: x => x.QuestionId,
                         principalTable: "Questions",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -141,6 +142,13 @@ namespace QuizAPI.Migrations
                 name: "IX_Options_QuestionId",
                 table: "Options",
                 column: "QuestionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_Email",
+                table: "Users",
+                column: "Email",
+                unique: true,
+                filter: "[Email] IS NOT NULL");
         }
 
         /// <inheritdoc />

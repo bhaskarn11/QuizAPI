@@ -60,7 +60,7 @@ namespace QuizAPI.Migrations
                     b.Property<int?>("AssessmentId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("QuestionId")
+                    b.Property<int>("QuestionId")
                         .HasColumnType("int");
 
                     b.Property<int?>("SubmittedAnswerId")
@@ -131,11 +131,8 @@ namespace QuizAPI.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("AssesmentId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Email")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("HashedPassword")
                         .HasColumnType("nvarchar(max)");
@@ -146,10 +143,17 @@ namespace QuizAPI.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("PasswordSalt")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("UserType")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique()
+                        .HasFilter("[Email] IS NOT NULL");
 
                     b.ToTable("Users");
                 });
@@ -173,7 +177,9 @@ namespace QuizAPI.Migrations
 
                     b.HasOne("QuizAPI.Models.Question", "Question")
                         .WithMany()
-                        .HasForeignKey("QuestionId");
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("QuizAPI.Models.Option", "SubmittedAnswer")
                         .WithMany()
@@ -186,13 +192,11 @@ namespace QuizAPI.Migrations
 
             modelBuilder.Entity("QuizAPI.Models.Option", b =>
                 {
-                    b.HasOne("QuizAPI.Models.Question", "Question")
+                    b.HasOne("QuizAPI.Models.Question", null)
                         .WithMany("Options")
                         .HasForeignKey("QuestionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Question");
                 });
 
             modelBuilder.Entity("QuizAPI.Models.Assessment", b =>

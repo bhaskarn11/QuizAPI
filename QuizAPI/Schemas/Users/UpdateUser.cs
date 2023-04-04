@@ -1,4 +1,4 @@
-﻿namespace QuizAPI.Schemas
+﻿namespace QuizAPI.Schemas.Users
 {
     public class UpdateUser : CreateUser
     {

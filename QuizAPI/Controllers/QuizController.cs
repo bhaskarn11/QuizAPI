@@ -3,13 +3,14 @@ using Microsoft.AspNetCore.Mvc;
 using CsvHelper;
 using CsvHelper.Configuration;
 using System.Globalization;
-
-
+using Microsoft.AspNetCore.Authorization;
+using QuizAPI.Schemas.Quiz;
 
 namespace QuizAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "TEACHER, ADMIN")]
     public class QuizController : ControllerBase
     {
         private readonly IQuizService quizService;

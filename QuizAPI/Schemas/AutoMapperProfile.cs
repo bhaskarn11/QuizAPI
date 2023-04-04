@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using QuizAPI.Schemas.Quiz;
+using QuizAPI.Schemas.Users;
 
 namespace QuizAPI.Schemas
 {

@@ -1,4 +1,6 @@
-﻿namespace QuizAPI.Services.Interfaces
+﻿using QuizAPI.Schemas.Quiz;
+
+namespace QuizAPI.Services.Interfaces
 {
     public interface IQuizService
     {
